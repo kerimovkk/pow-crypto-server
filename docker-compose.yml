@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    container_name: pow-server
+    ports:
+      - "8080:8080"
+    networks:
+      - pow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: pow-client
+    depends_on:
+      - server
+    networks:
+      - pow-network
+    command: ["--server", "server:8080", "--count", "5"]
+    restart: "no"
+
+networks:
+  pow-network:
+    driver: bridge
